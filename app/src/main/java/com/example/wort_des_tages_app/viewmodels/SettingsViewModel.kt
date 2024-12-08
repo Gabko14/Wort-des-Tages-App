@@ -45,11 +45,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    fun setAnzahlWoerter(anzahlWoerter: AnzahlWoerter?) {
-//        if (anzahlWoerter == null) return
-//        val result = database.userSettingsDao().setAnzahlWoerter(anzahlWoerter.value)
-//        if (result.toInt() != 0) {
+    suspend fun setAnzahlWoerter(anzahlWoerter: AnzahlWoerter?) {
+        if (anzahlWoerter == null) return
+        val result = database.userSettingsDao().setAnzahlWoerter(anzahlWoerter.value)
+        if (result.toInt() != 0) {
             _state.value = _state.value.copy(anzahlWoerter = anzahlWoerter)
-//        }
+        }
     }
 }
