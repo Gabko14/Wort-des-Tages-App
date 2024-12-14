@@ -9,7 +9,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.LineBreak
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.sp
 
@@ -28,7 +27,7 @@ fun LinkText(text: String?, url: String?, context: Context, modifier: Modifier =
     ClickableText(
         text = annotatedString,
         modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 42.sp, lineHeight = 35.sp),
+        style = MaterialTheme.typography.bodyLarge.copy(fontSize = 36.sp, lineHeight = 32.sp),
         onClick = { offset ->
             annotatedString.getStringAnnotations(tag = text, start = offset, end = offset).
             firstOrNull()?.let {

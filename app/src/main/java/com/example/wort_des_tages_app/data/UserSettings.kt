@@ -8,4 +8,10 @@ data class UserSettings(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val anzahl_woerter: Int?,
+    val amountSubstantiv: Int,
+    val amountAdjektiv: Int,
+    val amountVerb: Int,
+    val amountAdverb: Int,
+    val amountMehrwortausdruckOrNull: Int,
+    val minFrequenzklasse: Int
 )

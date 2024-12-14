@@ -9,7 +9,7 @@ import com.example.wort_des_tages_app.shared.DateConverters
 
 @Database(
     entities = [Wort::class, WortDesTages::class, UserSettings::class],
-    version = 1,
+    version = 2,
     exportSchema = false,
 )
 @TypeConverters(DateConverters::class)
@@ -30,7 +30,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "word_des_tages_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .addMigrations(MIGRATION_1_2)
                     .createFromAsset("database/dwds.db")
                     .build()
 
