@@ -3,142 +3,218 @@ package com.example.wort_des_tages_app.views
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.wort_des_tages_app.viewmodels.SettingsViewModel
 import kotlin.math.roundToInt
 
+data class SettingsUiState(
+    val anzahlWoerter: Float = 0f,
+    val amountSubstantiv: Float = 0f,
+    val amountAdjektiv: Float = 0f,
+    val amountVerb: Float = 0f,
+    val amountAdverb: Float = 0f,
+    val amountMehrwortausdruckOrNull: Float = 0f,
+    val minFrequenzklasse: Float = 0f
+)
+
 @Composable
 fun Settings(settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier) {
-    val settingsState by settingsViewModel.state.collectAsState()
+    val viewModelState by settingsViewModel.state.collectAsState()
     val context = LocalContext.current
 
-    var anzahlWoerter by remember { mutableFloatStateOf(settingsState.anzahl_woerter?.value?.toFloat() ?: 0f) }
-    var amountSubstantiv by remember { mutableFloatStateOf(settingsState.amountSubstantiv?.toFloat() ?: 0f) }
-    var amountAdjektiv by remember { mutableFloatStateOf(settingsState.amountAdjektiv?.toFloat() ?: 0f) }
-    var amountVerb by remember { mutableFloatStateOf(settingsState.amountVerb?.toFloat() ?: 0f) }
-    var amountAdverb by remember { mutableFloatStateOf(settingsState.amountAdverb?.toFloat() ?: 0f) }
-    var amountMehrwortausdruckOrNull by remember { mutableFloatStateOf(settingsState.amountMehrwortausdruckOrNull?.toFloat() ?: 0f) }
-    var minFrequenzklasse by remember { mutableFloatStateOf(settingsState.minFrequenzklasse?.toFloat() ?: 0f) }
-    LazyColumn(
-        modifier = modifier.padding(bottom = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        item {
-            SettingItem(
-                "Anzahl Wörter",
-                value = anzahlWoerter,
-                onValueChange = {
-                    anzahlWoerter = it.roundToInt().toFloat()
-                },
-                min = 1f,
+    var uiState by remember(viewModelState) {
+        mutableStateOf(
+            SettingsUiState(
+                anzahlWoerter = viewModelState.anzahl_woerter?.value?.toFloat() ?: 0f,
+                amountSubstantiv = viewModelState.amountSubstantiv?.toFloat() ?: 0f,
+                amountAdjektiv = viewModelState.amountAdjektiv?.toFloat() ?: 0f,
+                amountVerb = viewModelState.amountVerb?.toFloat() ?: 0f,
+                amountAdverb = viewModelState.amountAdverb?.toFloat() ?: 0f,
+                amountMehrwortausdruckOrNull = viewModelState.amountMehrwortausdruckOrNull?.toFloat()
+                    ?: 0f,
+                minFrequenzklasse = viewModelState.minFrequenzklasse?.toFloat() ?: 0f
             )
-        }
-        item {
-            SettingItem(
-                "Anzahl Substantiv",
-                value = amountSubstantiv,
-                onValueChange = {
-                    amountSubstantiv = it.roundToInt().toFloat()
-                }
-            )
-        }
-        item {
-            SettingItem(
-                "Anzahl Adjektiv",
-                value = amountAdjektiv,
-                onValueChange = {
-                    amountAdjektiv = it.roundToInt().toFloat()
-                }
-            )
-        }
-        item {
-            SettingItem(
-                "Anzahl Verb",
-                value = amountVerb,
-                onValueChange = {
-                    amountVerb = it.roundToInt().toFloat()
-                }
-            )
-        }
-        item {
-            SettingItem(
-                "Anzahl Adverb",
-                value = amountAdverb,
-                onValueChange = {
-                    amountAdverb = it.roundToInt().toFloat()
-                }
-            )
-        }
-        item {
-            SettingItem(
-                "Anzahl Mehrwortausdruck (Oder unbekannt)",
-                value = amountMehrwortausdruckOrNull,
-                onValueChange = {
-                    amountMehrwortausdruckOrNull = it.roundToInt().toFloat()
-                }
-            )
-        }
-        item {
-            SettingItem(
-                "Min Frequenzklasse",
-                value = minFrequenzklasse,
-                onValueChange = {
-                    minFrequenzklasse = it.roundToInt().toFloat()
-                }
-            )
+        )
+    }
+
+    val hasChanges by remember(uiState, viewModelState) {
+        derivedStateOf {
+            uiState.anzahlWoerter.roundToInt() != viewModelState.anzahl_woerter?.value ||
+                    uiState.amountSubstantiv.roundToInt() != viewModelState.amountSubstantiv ||
+                    uiState.amountAdjektiv.roundToInt() != viewModelState.amountAdjektiv ||
+                    uiState.amountVerb.roundToInt() != viewModelState.amountVerb ||
+                    uiState.amountAdverb.roundToInt() != viewModelState.amountAdverb ||
+                    uiState.amountMehrwortausdruckOrNull.roundToInt() != viewModelState.amountMehrwortausdruckOrNull ||
+                    uiState.minFrequenzklasse.roundToInt() != viewModelState.minFrequenzklasse
         }
     }
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(bottom = 32.dp, end = 25.dp),
-        contentAlignment = Alignment.BottomEnd
-    ) {
-        Button(onClick = {
-            settingsViewModel.updateSettings(
-                anzahl_woerter = anzahlWoerter.roundToInt(),
-                amountSubstantiv = amountSubstantiv.roundToInt(),
-                amountAdjektiv = amountAdjektiv.roundToInt(),
-                amountVerb = amountVerb.roundToInt(),
-                amountAdverb = amountAdverb.roundToInt(),
-                amountMehrwortausdruckOrNull = amountMehrwortausdruckOrNull.roundToInt(),
-                minFrequenzklasse = minFrequenzklasse.roundToInt()
-            )
-            Toast.makeText(context, "Settings saved", Toast.LENGTH_SHORT).show()
-        }) {
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        LazyColumn(
+            modifier = modifier.padding(bottom = 80.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            item {
+                SettingSlider(
+                    label = "Anzahl Wörter",
+                    value = uiState.anzahlWoerter,
+                    onValueChange = {
+                        uiState = uiState.copy(anzahlWoerter = it.roundToInt().toFloat())
+                    },
+                    min = 1f,
+                    max = 5f
+                )
+            }
+
+            item {
+                SettingSlider(
+                    label = "Anzahl Substantiv",
+                    value = uiState.amountSubstantiv,
+                    onValueChange = {
+                        uiState = uiState.copy(amountSubstantiv = it.roundToInt().toFloat())
+                    },
+                    max = 5f
+                )
+            }
+
+            item {
+                SettingSlider(
+                    label = "Anzahl Adjektiv",
+                    value = uiState.amountAdjektiv,
+                    onValueChange = {
+                        uiState = uiState.copy(amountAdjektiv = it.roundToInt().toFloat())
+                    },
+                    max = 5f
+                )
+            }
+
+            item {
+                SettingSlider(
+                    label = "Anzahl Verb",
+                    value = uiState.amountVerb,
+                    onValueChange = {
+                        uiState = uiState.copy(amountVerb = it.roundToInt().toFloat())
+                    },
+                    max = 5f
+                )
+            }
+
+            item {
+                SettingSlider(
+                    label = "Anzahl Adverb",
+                    value = uiState.amountAdverb,
+                    onValueChange = {
+                        uiState = uiState.copy(amountAdverb = it.roundToInt().toFloat())
+                    },
+                    max = 5f
+                )
+            }
+
+            item {
+                SettingSlider(
+                    label = "Anzahl Mehrwortausdruck (Oder unbekannt)",
+                    value = uiState.amountMehrwortausdruckOrNull,
+                    onValueChange = {
+                        uiState =
+                            uiState.copy(amountMehrwortausdruckOrNull = it.roundToInt().toFloat())
+                    },
+                    max = 5f
+                )
+            }
+
+            item {
+                SettingSlider(
+                    label = "Min Frequenzklasse",
+                    value = uiState.minFrequenzklasse,
+                    onValueChange = {
+                        uiState = uiState.copy(minFrequenzklasse = it.roundToInt().toFloat())
+                    },
+                    max = 5f
+                )
+            }
+        }
+
+        Button(
+            onClick = {
+                settingsViewModel.updateSettings(
+                    anzahl_woerter = uiState.anzahlWoerter.roundToInt(),
+                    amountSubstantiv = uiState.amountSubstantiv.roundToInt(),
+                    amountAdjektiv = uiState.amountAdjektiv.roundToInt(),
+                    amountVerb = uiState.amountVerb.roundToInt(),
+                    amountAdverb = uiState.amountAdverb.roundToInt(),
+                    amountMehrwortausdruckOrNull = uiState.amountMehrwortausdruckOrNull.roundToInt(),
+                    minFrequenzklasse = uiState.minFrequenzklasse.roundToInt()
+                )
+                Toast.makeText(context, "Settings saved", Toast.LENGTH_SHORT).show()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(bottom = 32.dp, end = 25.dp),
+            enabled = hasChanges
+        ) {
             Text("Save")
         }
     }
 }
 
 @Composable
-fun SettingItem(
+fun SettingSlider(
     label: String,
     value: Float,
     onValueChange: (Float) -> Unit,
     min: Float = 0f,
     max: Float = 5f
 ) {
-    Text(text = label)
-    Slider(
-        value = value,
-        onValueChange = onValueChange,
-        valueRange = min..max
-    )
-    Text(text = value.toString())
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(text = label)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Slider(
+                value = value,
+                onValueChange = onValueChange,
+                valueRange = min..max,
+                steps = (max - min).toInt() - 1,
+                modifier = Modifier.weight(1f)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Text(
+                text = value.roundToInt().toString(),
+                modifier = Modifier.width(24.dp),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(8.dp))
 }

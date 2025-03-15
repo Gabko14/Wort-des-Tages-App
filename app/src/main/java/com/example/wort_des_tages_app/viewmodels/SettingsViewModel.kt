@@ -7,6 +7,8 @@ import com.example.wort_des_tages_app.data.AppDatabase
 import com.example.wort_des_tages_app.data.UserSettings
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 enum class AnzahlWoerter(val value: Int) {
@@ -20,13 +22,15 @@ enum class AnzahlWoerter(val value: Int) {
 }
 
 data class SettingsState(
-    var anzahl_woerter: AnzahlWoerter? = null,
-    var minFrequenzklasse: Int? = null,
-    var amountSubstantiv: Int? = null,
-    var amountAdjektiv: Int? = null,
-    var amountVerb: Int? = null,
-    var amountAdverb: Int? = null,
-    var amountMehrwortausdruckOrNull: Int? = null,
+    val isLoading: Boolean = false,
+    val anzahl_woerter: AnzahlWoerter? = null,
+    val minFrequenzklasse: Int? = null,
+    val amountSubstantiv: Int? = null,
+    val amountAdjektiv: Int? = null,
+    val amountVerb: Int? = null,
+    val amountAdverb: Int? = null,
+    val amountMehrwortausdruckOrNull: Int? = null,
+    val error: String? = null
 )
 
 class SettingsViewModel(application: Application) : AndroidViewModel(application) {
@@ -34,8 +38,8 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         AppDatabase.getInstance(application.applicationContext)
     }
 
-    private val _state = MutableStateFlow(SettingsState())
-    val state: StateFlow<SettingsState> get() = _state
+    private val _state = MutableStateFlow(SettingsState(isLoading = true))
+    val state: StateFlow<SettingsState> = _state.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -44,17 +48,38 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     private suspend fun fetchSettings() {
-        val settings = database.userSettingsDao().getUserSettings()
-        if (settings != null) {
-            _state.value = _state.value.copy(
-                anzahl_woerter = settings.anzahl_woerter?.let { AnzahlWoerter.fromInt(it) },
-                amountSubstantiv = settings.amountSubstantiv,
-                amountAdjektiv = settings.amountAdjektiv,
-                amountVerb = settings.amountVerb,
-                amountAdverb = settings.amountAdverb,
-                amountMehrwortausdruckOrNull = settings.amountMehrwortausdruckOrNull,
-                minFrequenzklasse = settings.minFrequenzklasse
-            )
+        try {
+            _state.update { it.copy(isLoading = true, error = null) }
+
+            val settings = database.userSettingsDao().getUserSettings()
+
+            if (settings != null) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        anzahl_woerter = settings.anzahl_woerter?.let { value ->
+                            AnzahlWoerter.fromInt(
+                                value
+                            )
+                        },
+                        amountSubstantiv = settings.amountSubstantiv,
+                        amountAdjektiv = settings.amountAdjektiv,
+                        amountVerb = settings.amountVerb,
+                        amountAdverb = settings.amountAdverb,
+                        amountMehrwortausdruckOrNull = settings.amountMehrwortausdruckOrNull,
+                        minFrequenzklasse = settings.minFrequenzklasse
+                    )
+                }
+            } else {
+                _state.update { it.copy(isLoading = false) }
+            }
+        } catch (e: Exception) {
+            _state.update {
+                it.copy(
+                    isLoading = false,
+                    error = e.localizedMessage ?: "Error fetching settings"
+                )
+            }
         }
     }
 
@@ -68,30 +93,58 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
         minFrequenzklasse: Int? = null
     ) {
         viewModelScope.launch {
+            try {
+                _state.update { it.copy(isLoading = true, error = null) }
 
-            val newSettings = UserSettings(
-                id = 1,
-                anzahl_woerter = anzahl_woerter ?: 0,
-                amountSubstantiv = amountSubstantiv ?: 0,
-                amountAdjektiv = amountAdjektiv ?: 0,
-                amountVerb = amountVerb ?: 0,
-                amountAdverb = amountAdverb ?: 0,
-                amountMehrwortausdruckOrNull = amountMehrwortausdruckOrNull ?: 0,
-                minFrequenzklasse = minFrequenzklasse ?: 0
-            )
-            val resultSettings = database.userSettingsDao().updateUserSettings(newSettings)
-            if (resultSettings != 0) {
-                _state.value = _state.value.copy(
-                    anzahl_woerter = newSettings.anzahl_woerter?.let { AnzahlWoerter.fromInt(it) },
-                    amountSubstantiv = newSettings.amountSubstantiv,
-                    amountAdjektiv = newSettings.amountAdjektiv,
-                    amountVerb = newSettings.amountVerb,
-                    amountAdverb = newSettings.amountAdverb,
-                    amountMehrwortausdruckOrNull = newSettings.amountMehrwortausdruckOrNull,
-                    minFrequenzklasse = newSettings.minFrequenzklasse
+                val newSettings = UserSettings(
+                    id = 1,
+                    anzahl_woerter = anzahl_woerter ?: 0,
+                    amountSubstantiv = amountSubstantiv ?: 0,
+                    amountAdjektiv = amountAdjektiv ?: 0,
+                    amountVerb = amountVerb ?: 0,
+                    amountAdverb = amountAdverb ?: 0,
+                    amountMehrwortausdruckOrNull = amountMehrwortausdruckOrNull ?: 0,
+                    minFrequenzklasse = minFrequenzklasse ?: 0
                 )
+
+                val resultSettings = database.userSettingsDao().updateUserSettings(newSettings)
+
+                if (resultSettings != 0) {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            anzahl_woerter = newSettings.anzahl_woerter?.let { value ->
+                                AnzahlWoerter.fromInt(
+                                    value
+                                )
+                            },
+                            amountSubstantiv = newSettings.amountSubstantiv,
+                            amountAdjektiv = newSettings.amountAdjektiv,
+                            amountVerb = newSettings.amountVerb,
+                            amountAdverb = newSettings.amountAdverb,
+                            amountMehrwortausdruckOrNull = newSettings.amountMehrwortausdruckOrNull,
+                            minFrequenzklasse = newSettings.minFrequenzklasse
+                        )
+                    }
+                } else {
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            error = "Failed to save settings"
+                        )
+                    }
+                }
+
+                // Generate new words for the day based on updated settings
+                database.wortDesTagesDao().createWortDesTages()
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.localizedMessage ?: "Error updating settings"
+                    )
+                }
             }
-            database.wortDesTagesDao().createWortDesTages()
         }
     }
 }
