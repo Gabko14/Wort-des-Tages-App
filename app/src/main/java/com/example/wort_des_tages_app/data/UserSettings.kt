@@ -13,5 +13,6 @@ data class UserSettings(
     val amountVerb: Int,
     val amountAdverb: Int,
     val amountMehrwortausdruckOrNull: Int,
-    val minFrequenzklasse: Int
+    val minFrequenzklasse: Int,
+    val notificationsEnabled: Boolean = true
 )

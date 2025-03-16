@@ -64,4 +64,7 @@ dependencies {
     ksp("androidx.room:room-compiler:${rootProject.extra["room_version"]}")
     implementation("androidx.room:room-ktx:${rootProject.extra["room_version"]}")
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    
+    // WorkManager for scheduling notifications
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 }

@@ -17,8 +17,8 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun LinkText(
-    text: String?,
-    url: String?,
+    text: String?, 
+    url: String?, 
     context: Context = LocalContext.current,
     modifier: Modifier = Modifier,
     fontSize: Int = 36
@@ -26,9 +26,13 @@ fun LinkText(
     // Early return if text or url is null
     if (text.isNullOrEmpty() || url.isNullOrEmpty()) return
 
-    // Get the primary color outside of remember
+    // Get theme color outside the remember block
     val primaryColor = MaterialTheme.colorScheme.primary
-
+    val textStyle = MaterialTheme.typography.bodyLarge.copy(
+        fontSize = fontSize.sp, 
+        lineHeight = (fontSize - 4).sp
+    )
+    
     // Creating the annotated string - memoize to prevent recreating during recompositions
     val annotatedString = remember(text, url, primaryColor) {
         buildAnnotatedString {
@@ -48,14 +52,11 @@ fun LinkText(
     ClickableText(
         text = annotatedString,
         modifier = modifier,
-        style = MaterialTheme.typography.bodyLarge.copy(
-            fontSize = fontSize.sp,
-            lineHeight = (fontSize - 4).sp
-        ),
+        style = textStyle,
         onClick = { offset ->
             annotatedString.getStringAnnotations(
-                tag = "URL",
-                start = offset,
+                tag = "URL", 
+                start = offset, 
                 end = offset
             ).firstOrNull()?.let { annotation ->
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(annotation.item)).apply {

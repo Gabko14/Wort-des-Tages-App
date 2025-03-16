@@ -13,7 +13,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -25,8 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.wort_des_tages_app.viewmodels.SettingsViewModel
 import kotlin.math.roundToInt
 
@@ -37,7 +41,8 @@ data class SettingsUiState(
     val amountVerb: Float = 0f,
     val amountAdverb: Float = 0f,
     val amountMehrwortausdruckOrNull: Float = 0f,
-    val minFrequenzklasse: Float = 0f
+    val minFrequenzklasse: Float = 0f,
+    val notificationsEnabled: Boolean = true
 )
 
 @Composable
@@ -55,7 +60,8 @@ fun Settings(settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier
                 amountAdverb = viewModelState.amountAdverb?.toFloat() ?: 0f,
                 amountMehrwortausdruckOrNull = viewModelState.amountMehrwortausdruckOrNull?.toFloat()
                     ?: 0f,
-                minFrequenzklasse = viewModelState.minFrequenzklasse?.toFloat() ?: 0f
+                minFrequenzklasse = viewModelState.minFrequenzklasse?.toFloat() ?: 0f,
+                notificationsEnabled = viewModelState.notificationsEnabled
             )
         )
     }
@@ -68,7 +74,8 @@ fun Settings(settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier
                     uiState.amountVerb.roundToInt() != viewModelState.amountVerb ||
                     uiState.amountAdverb.roundToInt() != viewModelState.amountAdverb ||
                     uiState.amountMehrwortausdruckOrNull.roundToInt() != viewModelState.amountMehrwortausdruckOrNull ||
-                    uiState.minFrequenzklasse.roundToInt() != viewModelState.minFrequenzklasse
+                    uiState.minFrequenzklasse.roundToInt() != viewModelState.minFrequenzklasse ||
+                    uiState.notificationsEnabled != viewModelState.notificationsEnabled
         }
     }
 
@@ -77,7 +84,75 @@ fun Settings(settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier
             modifier = modifier.padding(bottom = 80.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Notification Settings Section
             item {
+                Text(
+                    text = "Notification Settings",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Daily Word Notifications",
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    Switch(
+                        checked = uiState.notificationsEnabled,
+                        onCheckedChange = { isEnabled ->
+                            uiState = uiState.copy(notificationsEnabled = isEnabled)
+                        }
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Receive a daily notification with your words of the day",
+                    fontSize = 14.sp,
+                    color = androidx.compose.ui.graphics.Color.Gray
+                )
+                
+                if (uiState.notificationsEnabled) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Button(
+                            onClick = {
+                                settingsViewModel.testNotification()
+                                Toast.makeText(
+                                    context, 
+                                    "Test notification sent", 
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        ) {
+                            Text("Test Notification")
+                        }
+                    }
+                }
+                
+                Divider(
+                    modifier = Modifier.padding(vertical = 16.dp)
+                )
+            }
+            
+            // Word Count Settings Section
+            item {
+                Text(
+                    text = "Word Settings",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                
                 SettingSlider(
                     label = "Anzahl Wörter",
                     value = uiState.anzahlWoerter,
@@ -166,7 +241,8 @@ fun Settings(settingsViewModel: SettingsViewModel, modifier: Modifier = Modifier
                     amountVerb = uiState.amountVerb.roundToInt(),
                     amountAdverb = uiState.amountAdverb.roundToInt(),
                     amountMehrwortausdruckOrNull = uiState.amountMehrwortausdruckOrNull.roundToInt(),
-                    minFrequenzklasse = uiState.minFrequenzklasse.roundToInt()
+                    minFrequenzklasse = uiState.minFrequenzklasse.roundToInt(),
+                    notificationsEnabled = uiState.notificationsEnabled
                 )
                 Toast.makeText(context, "Settings saved", Toast.LENGTH_SHORT).show()
             },
