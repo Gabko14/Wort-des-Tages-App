@@ -120,40 +120,35 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
 
                 val resultSettings = database.userSettingsDao().updateUserSettings(newSettings)
 
-                if (resultSettings != 0) {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            anzahl_woerter = newSettings.anzahl_woerter?.let { value ->
-                                AnzahlWoerter.fromInt(
-                                    value
-                                )
-                            },
-                            amountSubstantiv = newSettings.amountSubstantiv,
-                            amountAdjektiv = newSettings.amountAdjektiv,
-                            amountVerb = newSettings.amountVerb,
-                            amountAdverb = newSettings.amountAdverb,
-                            amountMehrwortausdruckOrNull = newSettings.amountMehrwortausdruckOrNull,
-                            minFrequenzklasse = newSettings.minFrequenzklasse,
-                            notificationsEnabled = newSettings.notificationsEnabled
-                        )
-                    }
-                    
-                    // Handle notification scheduling based on enabled/disabled setting
-                    if (newSettings.notificationsEnabled) {
-                        // Schedule daily notifications if they're enabled
-                        DailyWordsWorker.scheduleDaily(getApplication())
-                    } else {
-                        // Cancel scheduled notifications if they're disabled
-                        workManager.cancelUniqueWork("daily_words_notification_worker")
-                    }
+                if (resultSettings == 0) {
+                    database.userSettingsDao().insertUserSettings(newSettings)
+                }
+
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        anzahl_woerter = newSettings.anzahl_woerter?.let { value ->
+                            AnzahlWoerter.fromInt(
+                                value
+                            )
+                        },
+                        amountSubstantiv = newSettings.amountSubstantiv,
+                        amountAdjektiv = newSettings.amountAdjektiv,
+                        amountVerb = newSettings.amountVerb,
+                        amountAdverb = newSettings.amountAdverb,
+                        amountMehrwortausdruckOrNull = newSettings.amountMehrwortausdruckOrNull,
+                        minFrequenzklasse = newSettings.minFrequenzklasse,
+                        notificationsEnabled = newSettings.notificationsEnabled
+                    )
+                }
+                
+                // Handle notification scheduling based on enabled/disabled setting
+                if (newSettings.notificationsEnabled) {
+                    // Schedule daily notifications if they're enabled
+                    DailyWordsWorker.scheduleDaily(getApplication())
                 } else {
-                    _state.update {
-                        it.copy(
-                            isLoading = false,
-                            error = "Failed to save settings"
-                        )
-                    }
+                    // Cancel scheduled notifications if they're disabled
+                    workManager.cancelUniqueWork("daily_words_notification_worker")
                 }
 
                 // Generate new words for the day based on updated settings
